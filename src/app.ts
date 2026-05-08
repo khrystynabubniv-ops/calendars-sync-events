@@ -28,7 +28,9 @@ function isAuthorizedAdminRequest(
 
 export function createApp(config: AppConfig) {
   const app = express();
-  const notion = new NotionClient(config.notionToken, config.notionVersion);
+  const notion = config.notionToken
+    ? new NotionClient(config.notionToken, config.notionVersion)
+    : null;
 
   app.use(
     express.json({
@@ -68,6 +70,14 @@ export function createApp(config: AppConfig) {
       return;
     }
 
+    if (!notion) {
+      response.status(503).json({
+        ok: false,
+        error: "NOTION_TOKEN is not configured",
+      });
+      return;
+    }
+
     response.status(202).json({ ok: true });
 
     void handleNotionWebhook(request.body, notion, config).catch((error) => {
@@ -78,6 +88,14 @@ export function createApp(config: AppConfig) {
   app.post("/jobs/backfill", async (request, response) => {
     if (!isAuthorizedAdminRequest(request, config)) {
       response.status(401).json({ ok: false });
+      return;
+    }
+
+    if (!notion) {
+      response.status(503).json({
+        ok: false,
+        error: "NOTION_TOKEN is not configured",
+      });
       return;
     }
 
