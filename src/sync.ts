@@ -1,4 +1,5 @@
 import type { AppConfig } from "./config.js";
+import { changedProperties } from "./compare.js";
 import { buildSeoCalendarProperties, skippedActivityType } from "./mapping.js";
 import { normalizeNotionId, NotionClient, type NotionPage } from "./notion.js";
 import { checkboxValue, dateValue, richTextProperty, selectValue } from "./properties.js";
@@ -6,6 +7,7 @@ import { checkboxValue, dateValue, richTextProperty, selectValue } from "./prope
 export type SyncResult =
   | { status: "created"; sourcePageId: string; targetPageId: string }
   | { status: "updated"; sourcePageId: string; targetPageId: string }
+  | { status: "unchanged"; sourcePageId: string; targetPageId: string }
   | { status: "skipped"; sourcePageId: string; reason: string };
 
 function isSourceActivityPage(page: NotionPage, config: AppConfig): boolean {
@@ -98,7 +100,16 @@ export async function syncActivityPageObject(
   );
 
   if (existingSeoPage) {
-    const updatedPage = await notion.updatePage(existingSeoPage.id, properties);
+    const changes = changedProperties(existingSeoPage.properties, properties);
+    if (Object.keys(changes).length === 0) {
+      return {
+        status: "unchanged",
+        sourcePageId: sourcePage.id,
+        targetPageId: existingSeoPage.id,
+      };
+    }
+
+    const updatedPage = await notion.updatePage(existingSeoPage.id, changes);
     return {
       status: "updated",
       sourcePageId: sourcePage.id,

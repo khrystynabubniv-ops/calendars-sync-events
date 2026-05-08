@@ -5,8 +5,24 @@ export type AppConfig = {
   seoCalendarDataSourceId: string;
   notionWebhookVerificationToken?: string;
   syncAdminToken?: string;
+  enablePolling: boolean;
+  pollIntervalMs: number;
   port: number;
 };
+
+function booleanEnv(name: string, defaultValue: boolean): boolean {
+  const value = process.env[name];
+  if (!value) {
+    return defaultValue;
+  }
+
+  return !["0", "false", "no", "off"].includes(value.toLowerCase());
+}
+
+function numberEnv(name: string, defaultValue: number): number {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) && value > 0 ? value : defaultValue;
+}
 
 export function readConfig(): AppConfig {
   return {
@@ -21,6 +37,8 @@ export function readConfig(): AppConfig {
     notionWebhookVerificationToken:
       process.env.NOTION_WEBHOOK_VERIFICATION_TOKEN || undefined,
     syncAdminToken: process.env.SYNC_ADMIN_TOKEN || undefined,
-    port: Number(process.env.PORT || 3000),
+    enablePolling: booleanEnv("ENABLE_POLLING", true),
+    pollIntervalMs: numberEnv("POLL_INTERVAL_MS", 60_000),
+    port: numberEnv("PORT", 3000),
   };
 }

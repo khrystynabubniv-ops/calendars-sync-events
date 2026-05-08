@@ -4,7 +4,7 @@ Small Notion sync service for copying approved EB activities into the SEO calend
 
 ## Current Scope
 
-The service syncs from the `Activities` data source into the SEO calendar only.
+The service syncs from the `Activities` data source into the SEO calendar only. It polls Notion every minute by default, so no Notion webhook subscription is required.
 
 An activity is eligible when:
 
@@ -46,15 +46,16 @@ NOTION_TOKEN=
 NOTION_VERSION=2025-09-03
 SOURCE_ACTIVITIES_DATA_SOURCE_ID=040fac81-5162-43ee-ad31-e19479696ba3
 SEO_CALENDAR_DATA_SOURCE_ID=2a2ce989-9cb7-804f-b66f-000b0b58be12
-NOTION_WEBHOOK_VERIFICATION_TOKEN=
 SYNC_ADMIN_TOKEN=
+ENABLE_POLLING=true
+POLL_INTERVAL_MS=60000
 PORT=3000
 ```
 
 ## Endpoints
 
 - `GET /healthz` - health check
-- `POST /webhooks/notion` - Notion webhook receiver
+- `POST /webhooks/notion` - optional Notion webhook receiver
 - `POST /jobs/backfill` - protected backfill for all currently eligible activities
 
 For backfill, pass either:
@@ -79,10 +80,4 @@ npm run build
 npm run start
 ```
 
-After deployment, configure Notion webhook URL:
-
-```txt
-https://<railway-domain>/webhooks/notion
-```
-
-Notion will send a one-time `verification_token`. Put it into Railway as `NOTION_WEBHOOK_VERIFICATION_TOKEN`, then verify the webhook in Notion.
+Polling is controlled by `ENABLE_POLLING` and `POLL_INTERVAL_MS`.
