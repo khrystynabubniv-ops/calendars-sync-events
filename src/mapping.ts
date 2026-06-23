@@ -40,11 +40,16 @@ const locationMap = new Map<string, string>([
 
 const statusMap = new Map<string, string>([
   ["To do", "Not started"],
+  ["Backlog", "Not started"],
+  ["On hold", "Not started"],
   ["Not started", "Not started"],
   ["In progress", "In progress"],
   ["Comments", "In progress"],
+  ["Review", "In progress"],
   ["Ready", "Done"],
   ["Done", "Done"],
+  ["Posted", "Done"],
+  ["Cancelled", "Cancelled"],
 ]);
 
 function maybeAdd(
@@ -71,7 +76,7 @@ function mapStatus(value: string | null) {
     return undefined;
   }
 
-  return statusMap.get(value) || value;
+  return statusMap.get(value);
 }
 
 export function buildSeoCalendarProperties(sourcePage: NotionPage) {
