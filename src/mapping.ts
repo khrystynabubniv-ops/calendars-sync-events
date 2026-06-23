@@ -40,9 +40,11 @@ const locationMap = new Map<string, string>([
 
 const statusMap = new Map<string, string>([
   ["To do", "Not started"],
+  ["Not started", "Not started"],
   ["In progress", "In progress"],
   ["Comments", "In progress"],
   ["Ready", "Done"],
+  ["Done", "Done"],
 ]);
 
 function maybeAdd(
@@ -57,6 +59,19 @@ function maybeAdd(
 
 function mapOne(map: Map<string, string>, value: string | null) {
   return value ? map.get(value) : undefined;
+}
+
+function sourceStatusValue(sourcePage: NotionPage) {
+  const status = sourcePage.properties.Status;
+  return statusValue(status) || selectValue(status);
+}
+
+function mapStatus(value: string | null) {
+  if (!value) {
+    return undefined;
+  }
+
+  return statusMap.get(value) || value;
 }
 
 export function buildSeoCalendarProperties(sourcePage: NotionPage) {
@@ -135,7 +150,7 @@ export function buildSeoCalendarProperties(sourcePage: NotionPage) {
     merch !== null ? richTextProperty(String(merch)) : undefined,
   );
 
-  const status = mapOne(statusMap, statusValue(source.Status));
+  const status = mapStatus(sourceStatusValue(sourcePage));
   maybeAdd(properties, "Статус", status ? statusProperty(status) : undefined);
 
   return properties;
